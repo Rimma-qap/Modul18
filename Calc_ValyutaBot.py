@@ -5,30 +5,44 @@ from extensions import APIException, CryptoConverter
 
 bot = telebot.TeleBot(TOKEN)
 
-HELP_TEXT = '''
-Чтобы начать работу введите команду боту в следующем формате:
-
-<Валюта1> <Валюта2> <Количество>
-
-где <Валюта1> - название валюты, цену которой хотите узнать 
-<Валюта2> - название валюты, в которой надо узнать цену первой валюты
-<Количество> - количество <Валюта1>
-
-Например, доллар рубль 123
-
-Увидеть список всех доступных валют: /values
-'''
-
 
 @bot.message_handler(commands=['start'])
 def start(message: telebot.types.Message):
-    text = f'Привет, {message.chat.username}!\n{HELP_TEXT}'
+    text = f'''Привет, {message.chat.username}!
+    Я Бот - Валютный калькулятор - @Calc_ValutaBot.
+    Помогу быстро перевести любую сумму из одной валюты в другую.
+    Просто напиши какую валюту хочешь перевести в какую и его количество.
+    
+    Например, необходимо перевести 100 евро в рубли.
+    Вводим: евро рубль 100
+    Получаем ответ: Стоимость 100 евро равен 8752.0 рубль
+    
+    Краткая инструкция по использованию бота - /help
+    Список всех доступных валют - /values
+    Приветствие бота - /start'''
+
     bot.reply_to(message, text)
 
 
 @bot.message_handler(commands=['help'])
 def help(message: telebot.types.Message):
-    bot.reply_to(message, HELP_TEXT)
+    text = '''Чтобы начать работу введите команду боту в следующем формате:
+    
+    <Валюта1> <Валюта2> <Количество>, где
+    
+    <Валюта1> - Название валюты, которую необходимо перевести
+    <Валюта2> - Название валюты, в которую конвертируется <Валюта 1>
+    <Количество> - Количество валют <Валюта1>, необходимых перевести в <Валюта2>
+    
+    Например, необходимо перевести 100 евро в рубли.
+    Вводим: евро рубль 100
+    Получаем ответ: Стоимость 100 евро равен 8752.0 рубль
+    
+    Краткая инструкция по использованию бота - /help
+    Список всех доступных валют - /values
+    Приветствие бота - /start'''
+
+    bot.reply_to(message, text)
 
 
 @bot.message_handler(commands=['values'])
@@ -45,16 +59,19 @@ def convert(message: telebot.types.Message):
         values = message.text.split(' ')
 
         if len(values) != 3:
-            raise APIException('Слишком много параметров.')
+            raise APIException('''Некорректный ввод данных!
+            Пример правильного ввода данных: евро рубль 100 
+            Получим ответ: Стоимость 100 евро равен 8747.0 рубль''')
 
         quote, base, amount = values
         total_base = CryptoConverter.get_price(quote, base, amount)
+        total_base = round(total_base, 2)
     except APIException as e:
-        bot.reply_to(message, f'Ошибка пользователя.\n{e}')
+        bot.reply_to(message, f'Ошибка пользователя!\n{e}')
     except Exception as e:
-        bot.reply_to(message, f'Не удалось обработать команду\n{e}')
+        bot.reply_to(message, f'Не удалось обработать команду:\n{e}')
     else:
-        text = f'Цена {amount} {quote} в {base} - {total_base}'
+        text = f'Стоимость {amount} {quote} равен {total_base} {base}'
         bot.send_message(message.chat.id, text)
 
 
