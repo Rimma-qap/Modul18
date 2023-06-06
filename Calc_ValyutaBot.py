@@ -60,8 +60,9 @@ def convert(message: telebot.types.Message):
 
         if len(values) != 3:
             raise APIException('''Некорректный ввод данных!
-            Пример правильного ввода данных: евро рубль 100 
-            Получим ответ: Стоимость 100 евро равен 8747.0 рубль''')
+            
+Пример правильного ввода данных: евро рубль 100
+Получим ответ: Стоимость 100 евро равен 8747.0 рубль''')
 
         quote, base, amount = values
         total_base = CryptoConverter.get_price(quote, base, amount)
